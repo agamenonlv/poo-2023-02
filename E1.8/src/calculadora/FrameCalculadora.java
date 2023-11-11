@@ -2,11 +2,7 @@ package calculadora;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
 
 public class FrameCalculadora {
 
@@ -27,19 +23,10 @@ public class FrameCalculadora {
 			janela.setPreferredSize(new Dimension(400,300));
 			
 			//Cria e configura os paineis
-//			GridLayout painelEntrada1 = new GridLayout(1,2);
-//			GridLayout painelEntrada2 = new GridLayout(1,2);
 			GridLayout painelOperacao = new GridLayout(1,4);
-//			GridLayout painelResultado = new GridLayout(1,2);
-//			painelEntrada1.setVgap(10);
-//			painelEntrada2.setVgap(10);
 			painelOperacao.setVgap(10);
 			painelOperacao.setHgap(5);
-//			painelResultado.setHgap(10);
-//			JPanel jplEntrada1 = new JPanel(painelEntrada1);
-//			JPanel jplEntrada2 = new JPanel(painelEntrada2);
 			JPanel jplOperacao = new JPanel(painelOperacao);
-//			JPanel jplResultado = new JPanel(painelResultado);
 			JPanel jplEntrada1 = new JPanel();
 			JPanel jplEntrada2 = new JPanel();
 			JPanel jplResultado = new JPanel();
@@ -61,62 +48,9 @@ public class FrameCalculadora {
 			jtfResultado = new JTextField(13);
 			jtfResultado.setEnabled(false);
 			jtfResultado.setFont(new Font("Arial", Font.BOLD, 24));
-			KeyListener numeral =  new KeyListener()
-			{
-				@Override
-				public void keyTyped(KeyEvent event) {
-					char c = event.getKeyChar();
-					JTextField jtf = (JTextField) event.getComponent();
-					if (c == '.')
-					{
-						if (jtf.getText().contains("."))
-						{
-							event.consume();
-						}
-					}
-					else if (c == '-')
-					{
-						if (jtf.getText().contains("-"))
-						{
-							try {
-								jtf.getDocument().remove(0, 1);
-							} catch (BadLocationException e) {
-								e.printStackTrace();
-							}
-							event.consume();
-						}
-						else
-						{
-							if (!(jtf.getText().isEmpty()))
-							{
-								try {
-									jtf.getDocument().insertString(0, "-", null);
-								} catch (BadLocationException e) {
-									e.printStackTrace();
-								}
-								event.consume();
-							}
-						}
-					}
-					else
-					{
-						if (!((c >= '0') && (c <= '9') || (c == KeyEvent.VK_BACK_SPACE) || (c == KeyEvent.VK_DELETE)))
-						{
-							event.consume();
-						}
-					}
-				}
-
-				@Override
-				public void keyPressed(KeyEvent event) {
-				}
-
-				@Override
-				public void keyReleased(KeyEvent event) {
-				}
-			};
-			jtfNumero1.addKeyListener(numeral);
-			jtfNumero2.addKeyListener(numeral);
+			EntradaNumerica numeros = new EntradaNumerica();
+			jtfNumero1.addKeyListener(numeros);
+			jtfNumero2.addKeyListener(numeros);
 
 			//Cria e configura os botões
 			JButton jbtSoma = new JButton("+");
@@ -127,10 +61,14 @@ public class FrameCalculadora {
 			jbtSubtracao.setFont(new Font("Arial", Font.BOLD, 40));
 			jbtMultiplicacao.setFont(new Font("Arial", Font.BOLD, 40));
 			jbtDivisao.setFont(new Font("Arial", Font.BOLD, 40));
-			jbtSoma.addActionListener(event -> adicao(event));
-			jbtSubtracao.addActionListener(event -> subtracao(event));
-			jbtMultiplicacao.addActionListener(event -> multiplicacao(event));
-			jbtDivisao.addActionListener(event -> divisao(event));
+			jbtSoma.setActionCommand("adição");
+			jbtSubtracao.setActionCommand("subtração");
+			jbtMultiplicacao.setActionCommand("multiplicação");
+			jbtDivisao.setActionCommand("divisão");
+			jbtSoma.addActionListener(event -> operacao(event));
+			jbtSubtracao.addActionListener(event -> operacao(event));
+			jbtMultiplicacao.addActionListener(event -> operacao(event));
+			jbtDivisao.addActionListener(event -> operacao(event));
 
 			//Modifica o rótulo de título
 			lblTitulo.setFont(new Font("Serif", Font.BOLD, 20));
@@ -164,9 +102,10 @@ public class FrameCalculadora {
 			janela.setVisible(true);
 		}
 
-		private Object adicao(ActionEvent event) {
+		private Object operacao(ActionEvent event) {
 			Double num1;
 			Double num2;
+			double resultado = 0.;
 			try
 			{
 				num1 = new Double(this.jtfNumero1.getText()).doubleValue();
@@ -185,91 +124,28 @@ public class FrameCalculadora {
 				JOptionPane.showMessageDialog(jtfNumero2, "Insira um valor numérico no campo Número 2!","ATENÇÃO",JOptionPane.WARNING_MESSAGE);
 				return null;
 			}
-			double resultado = num1 + num2;
-			this.jtfResultado.setText(String.valueOf(resultado));
-			return null;
-		}
+			if (event.getActionCommand() == "adição")
+			{
+				resultado = num1 + num2;
+			}
+			else if (event.getActionCommand() == "subtração")
+			{
+				resultado = num1 - num2;
+			}
+			else if (event.getActionCommand() == "multiplicação")
+			{
+				resultado = num1 * num2;
+			}
+			else if (event.getActionCommand() == "divisão")
+			{
 
-		private Object subtracao(ActionEvent event) {
-			Double num1;
-			Double num2;
-			try
-			{
-				num1 = new Double(this.jtfNumero1.getText()).doubleValue();
+				if (num2 == 0)
+				{
+					JOptionPane.showMessageDialog(jtfNumero2, "Insira um valor diferente de zero (0) no campo Número 2!","ATENÇÃO",JOptionPane.WARNING_MESSAGE);
+					return null;
+				}
+				resultado = num1 / num2;
 			}
-			catch (Exception e)
-			{
-				JOptionPane.showMessageDialog(jtfNumero1, "Insira um valor numérico no campo Número 1!","ATENÇÃO",JOptionPane.WARNING_MESSAGE);
-				return null;
-			}
-			try
-			{
-				num2 = new Double(this.jtfNumero2.getText()).doubleValue();
-			}
-			catch (Exception e)
-			{
-				JOptionPane.showMessageDialog(jtfNumero2, "Insira um valor numérico no campo Número 2!","ATENÇÃO",JOptionPane.WARNING_MESSAGE);
-				return null;
-			}
-			double resultado = num1 - num2;
-			this.jtfResultado.setText(String.valueOf(resultado));
-			return null;
-		}
-
-		private Object multiplicacao(ActionEvent event) {
-			Double num1;
-			Double num2;
-			try
-			{
-				num1 = new Double(this.jtfNumero1.getText()).doubleValue();
-			}
-			catch (Exception e)
-			{
-				JOptionPane.showMessageDialog(jtfNumero1, "Insira um valor numérico no campo Número 1!","ATENÇÃO",JOptionPane.WARNING_MESSAGE);
-				return null;
-			}
-			try
-			{
-				num2 = new Double(this.jtfNumero2.getText()).doubleValue();
-			}
-			catch (Exception e)
-			{
-				JOptionPane.showMessageDialog(jtfNumero2, "Insira um valor numérico no campo Número 2!","ATENÇÃO",JOptionPane.WARNING_MESSAGE);
-				return null;
-			}
-			double resultado = num1 * num2;
-			this.jtfResultado.setText(String.valueOf(resultado));
-			return null;
-		}
-
-		private Object divisao(ActionEvent event) {
-			Double num1;
-			Double num2;
-			this.jtfResultado.setText(null);
-			try
-			{
-				num1 = new Double(this.jtfNumero1.getText()).doubleValue();
-			}
-			catch (Exception e)
-			{
-				JOptionPane.showMessageDialog(jtfNumero1, "Insira um valor numérico no campo Número 1!","ATENÇÃO",JOptionPane.WARNING_MESSAGE);
-				return null;
-			}
-			try
-			{
-				num2 = new Double(this.jtfNumero2.getText()).doubleValue();
-			}
-			catch (Exception e)
-			{
-				JOptionPane.showMessageDialog(jtfNumero2, "Insira um valor numérico no campo Número 2!","ATENÇÃO",JOptionPane.WARNING_MESSAGE);
-				return null;
-			}
-			if (num2 == 0)
-			{
-				JOptionPane.showMessageDialog(jtfNumero2, "Insira um valor diferente de zero (0) no campo Número 2!","ATENÇÃO",JOptionPane.WARNING_MESSAGE);
-				return null;
-			}
-			double resultado = num1 / num2;
 			this.jtfResultado.setText(String.valueOf(resultado));
 			return null;
 		}
